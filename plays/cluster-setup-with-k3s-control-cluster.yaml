@@ -1,0 +1,62 @@
+---
+
+#This playbook sets up a new control-cluster and installs rancher on it
+# Used Host Roles: 
+# - rancher-control-cluster-master
+# - rancher-control-cluster-worker
+#
+# Tags: 
+# - k3s_setup_cleanup_nodes
+# - k3s_setup_install_rancher
+#
+# - k3s_setup_install_master
+# - k3s_setup_install_worker
+
+- name: Clean up all nodes
+  hosts: rancher-control-cluster-master:rancher-control-cluster-worker
+  roles:
+    - remove_k3s_components
+  tags:
+    - k3s_setup_cleanup_nodes
+
+- name: Prepare Firewall
+  hosts: rancher-control-cluster-master:rancher-control-cluster-worker
+  roles:
+    - configure_firewall 
+  tags:
+    - configure_firewall
+  become: true
+
+- name: Prepare K3S Installation on all nodes
+  hosts: rancher-control-cluster-master:rancher-control-cluster-worker
+  roles:
+    - prepare_install_k3s
+  tags:
+    - k3s_setup_prepare_install
+    - k3s_setup_install_master
+    - k3s_setup_install_worker
+  become: true  
+
+- name: Install K3S on master nodes
+  hosts: rancher-control-cluster-master
+  strategy: linear
+  roles:
+    - install_k3s
+  tags:
+    - k3s_setup_install_master
+  become: true
+
+- name: Install K3S on worker nodes
+  hosts: rancher-control-cluster-worker
+  roles:
+    - install_k3s
+  tags:
+    - k3s_setup_install_worker
+
+# The logic above is the same for all nodes. Below, we have additional logic in order to install rancher on the provided cluster
+- name: Install rancher
+  hosts: rancher-control-cluster-master
+  roles:
+    - install_rancher
+  tags:
+    - k3s_setup_install_rancher

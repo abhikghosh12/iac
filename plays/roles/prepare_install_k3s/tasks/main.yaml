@@ -1,0 +1,93 @@
+---
+
+- name: Create necessary directories
+  file:
+    path: "{{item}}"
+    state: directory
+    mode: 0755
+  with_items:
+    - /etc/rancher/k3s
+    - "{{k3s_installation_files_path}}"
+    - "{{k3s_installation_path}}/rancher"
+    - "{{k3s_installation_path}}/kubelet"
+    - "/var/lib/rancher/k3s/agent/images/"
+    - "/var/lib/rancher/k3s/server/"
+
+# Copy Installation - Files
+- name: copy config file with se-linux config and cluster-token for master nodes
+  template:
+    src: "{{role_path}}/templates/config.yaml.server.j2"
+    dest: /etc/rancher/k3s/config.yaml   
+  when: myrole == "master"
+
+- name: copy config file with se-linux config and cluster-token
+  template:
+    src: "{{role_path}}/templates/config.yaml.agent.j2"
+    dest: /etc/rancher/k3s/config.yaml   
+  when: myrole == "agent"
+
+- name: copy registries file
+  template:
+    src: "{{role_path}}/templates/registries.yaml.j2"
+    dest: /etc/rancher/k3s/registries.yaml
+
+- name: copy root ca
+  copy:
+    src: "{{root_ca}}"
+    dest: "{{k3s_installation_files_path}}/rootCA.pem"
+
+- name: copy k3s binary
+  copy:
+    src: "{{playbook_dir}}/installation_files/k3s/k3s.{{k3s_installation_binary_version}}+k3s1"
+    dest: /usr/local/bin/k3s
+    mode: 0755  
+
+- name: copy selinux rpm
+  copy:
+    src: "{{playbook_dir}}/installation_files/k3s/{{item}}"
+    dest: "{{k3s_installation_files_path}}"
+  with_items:
+      - k3s-selinux-{{k3s_selinux_rpm_version}}.noarch.rpm
+
+- name: Copy Rancher RPM Package to target
+  copy: 
+    src: "{{playbook_dir}}/installation_files/rancher/rancher-selinux-{{rancher_selinux_rpm_version}}.noarch.rpm"
+    dest: "{{k3s_installation_files_path}}/"
+    mode: 0755
+
+- name: copy k3s install script
+  copy:
+    src: "{{playbook_dir}}/installation_files/k3s/install.sh"
+    dest: "{{k3s_installation_files_path}}/install.sh"
+    mode: 0755  
+
+- name: copy tls_ca chain
+  copy:
+    src: "{{ root_ca }}"
+    dest: "{{k3s_installation_files_path}}/cacert.crt"
+
+- name: copy kernel default rules
+  copy:
+    src: "{{playbook_dir}}/installation_files/k3s/90-kubelet.conf"
+    dest: "/etc/sysctl.d/90-kubelet.conf"    
+
+- name: copy k3s audit policy
+  copy: 
+    src: "{{playbook_dir}}/installation_files/k3s/audit-policy.yaml"
+    dest: "/var/lib/rancher/k3s/server/audit-policy.yaml"
+
+# Install dep packages for selinux
+- name: install required rpm packages
+  yum:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - container-selinux
+    - selinux-policy-base
+    - "{{k3s_installation_files_path}}/k3s-selinux-{{k3s_selinux_rpm_version}}.noarch.rpm"
+    - iscsi-initiator-utils
+    - "{{k3s_installation_files_path}}/rancher-selinux-{{rancher_selinux_rpm_version}}.noarch.rpm"
+
+# Load Kernel Default Rules
+- name: Load Kernel default Rules
+  shell: "sysctl -p /etc/sysctl.d/90-kubelet.conf"

@@ -1,0 +1,14 @@
+id_rsa
+id_rsa*
+*.retry
+*.vault
+#*.crt
+*.pem
+cacert.cer
+vault_password
+plays/roles/install_rancher/helm/*
+/plays/roles/install_rancher/helm/
+plays/roles/install_rancher/tmp/*
+/plays/roles/upgrade_rancher/helm/
+/plays/roles/upgrade_rancher/helm/
+/plays/roles/upgrade_rancher/tmp/*

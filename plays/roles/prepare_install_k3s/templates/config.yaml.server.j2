@@ -1,0 +1,14 @@
+selinux: true
+token: {{cluster_token}}
+
+etcd-s3: {{k3s_etcd_backup_enabled}}
+etcd-s3-endpoint: {{k3s_backup_etcd_s3_endpoint}}
+etcd-s3-bucket: backup-{{cluster_name}} 
+etcd-s3-access-key: {{k3s_backup_etcd_s3_access_key}}
+etcd-s3-secret-key: {{k3s_backup_etcd_s3_secret_key}}
+etcd-s3-region: minio
+etcd-s3-endpoint-ca: {{k3s_installation_files_path}}/cacert.crt
+etcd-s3-folder: etcdbackup
+
+etcd-snapshot-schedule-cron: "0 21 * * *"
+etcd-snapshot-retention: 30

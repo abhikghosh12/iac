@@ -1,0 +1,8 @@
+[rancher-control-cluster-master]
+# Using Local Cluster
+
+[kubernetes_master]
+flex-wue01.dev.drv.drv
+
+[kubernetes_worker]
+flex-wue02.dev.drv.drv

@@ -1,0 +1,100 @@
+---
+# Kill all running k3s processes
+- name: Check that the killall script exists
+  stat:
+    path: /usr/local/bin/k3s-killall.sh
+  register: killall
+
+- name: Execute killall script for master if found
+  shell: /usr/local/bin/k3s-killall.sh
+  when: killall.stat.exists
+
+# Check & Execute uninstall scripts
+- name: Check that the uninstall script exists (master)
+  stat:
+    path: /usr/local/bin/k3s-uninstall.sh
+  register: uninstall_master
+
+- name: Check that the uninstall script exists (agent)
+  stat:
+    path: /usr/local/bin/k3s-agent-uninstall.sh
+  register: uninstall_agent  
+
+- name: Execute uninstall script for master if found
+  shell: /usr/local/bin/k3s-uninstall.sh
+  when: uninstall_master.stat.exists
+
+- name: Execute uninstall script for agent if found
+  shell: /usr/local/bin/k3s-agent-uninstall.sh
+  when: uninstall_agent.stat.exists
+
+# Reboot Server
+- name: Reboot the server
+  tags: reboot
+  shell: "sleep 5 && reboot"
+  async: 1
+  poll: 0
+
+- name: Wait for the reboot and reconnect 
+  wait_for:
+    port: 22
+    host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+    search_regex: OpenSSH
+    delay: 10
+    timeout: 120
+  connection: local
+
+- name: Check the Uptime of the servers
+  shell: "uptime"
+  register: Uptime    
+
+# Clean & Delete Old Installation Files
+
+- name: Clean directories
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{k3s_installation_files_path}}"
+
+# Cleanup dirs /var/lib/rancher & /var/lib/kubelet    
+- name: Locating all files in dir /var/lib/rancher
+  find:
+    path: "/var/lib/rancher/"
+  register: cleanup_rancher
+  ignore_errors: true
+
+- name: Locating all files in dir /var/lib/kubelet
+  find:
+    path: "/var/lib/kubelet/"
+  register: cleanup_kubelet
+  ignore_errors: true
+  
+- name: Removing all files of rancher dir
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ cleanup_rancher.files }}"
+  ignore_errors: false
+  
+- name: Removing all files of kubelet dir
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items: "{{ cleanup_kubelet.files }}"
+  ignore_errors: false
+
+- name: Removing Kernel K3S Hardening File
+  file: 
+    path: "/etc/sysctl.d/90-kubelet.conf"
+    state: absent
+
+# Remove Yum Packages (SeLinux RPM uninstall happens in uninstall.sh-Script)
+- name: uninstall required rpm packages
+  yum:
+    name: "{{item}}"
+    state: removed
+  with_items:
+    - container-selinux
+    - rancher-selinux.noarch
+    

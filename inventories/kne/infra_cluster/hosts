@@ -1,0 +1,10 @@
+
+[kubernetes_master]
+v0003777.kne.bund.drv
+v0003778.kne.bund.drv
+v0003779.kne.bund.drv
+
+[kubernetes_worker]
+v0003766.kne.bund.drv
+v0003767.kne.bund.drv
+v0003768.kne.bund.drv

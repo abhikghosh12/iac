@@ -1,0 +1,45 @@
+---
+
+- name: Stop K3s (master)
+  systemd:
+    state: stopped
+    daemon_reload: yes
+    name: k3s
+  when: myrole == "master"
+  become: true
+
+- name: Stop K3s (agent)
+  systemd:
+    state: stopped
+    daemon_reload: yes
+    name: k3s-agent
+  when: myrole == "agent"  
+  become: true
+
+- name: Copy binary to target
+  copy:
+    src: "{{playbook_dir}}/installation_files/k3s/k3s.{{k3s_installation_binary_version}}+k3s1"
+    dest: /usr/local/bin/k3s
+  become: true
+
+- name: Start K3s (master)
+  systemd:
+    state: started
+    daemon_reload: yes
+    name: k3s
+  when: myrole == "master"
+  become: true
+
+- name: Start K3s (agent)
+  systemd:
+    state: started
+    daemon_reload: yes
+    name: k3s-agent
+  when: myrole == "agent"  
+  become: true
+
+#Todo: find a way to avoid this
+- name: Wait for pods to come up
+  pause:
+    minutes: 2
+  become: true

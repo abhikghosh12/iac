@@ -1,0 +1,8 @@
+---
+- name: Copy config to all nodes & reboot nodes
+  hosts: rancher-control-cluster-master:rancher-control-cluster-worker:kubernetes_master:kubernetes_worker
+  roles:
+    - copy_config
+  tags:
+    - copy_config
+  become: true

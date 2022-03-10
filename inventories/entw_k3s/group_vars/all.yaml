@@ -1,0 +1,43 @@
+cluster_name: entw
+bootstrap_registry_url: v0002654.entw.bund.drv:5001
+cluster_token: ymxUOmF1to8xOO1KzPKadf
+
+#Proxy config
+http_proxy_url:   http://lbwgw.prod.bund.drv:80
+https_proxy_url:  http://lbwgw.prod.bund.drv:80
+no_proxy_config:  localhost,.bund.drv
+
+#K3S
+k3s_installation_files_path: /var/lib/k3s_installation_files
+k3s_installation_path: /var/lib/k3s
+k3s_installation_binary_version: v1.21.5
+k3s_selinux_rpm_version: 0.4-1.el7
+primary_master_node_k3s_port: 6443
+primary_master_node: v0002501.entw.bund.drv
+
+#Rancher
+rancher_selinux_rpm_version: 0.2-1.el7
+rancher_api_key: "{{ lookup('file', '{{playbook_dir}}/rancher_tokens/entw_key') }}"
+rancher_api_secret: "{{ lookup('file', '{{playbook_dir}}/rancher_tokens/entw_secret') }}"
+rancher_url: rancher.entw.bund.drv
+# K3S Backup Configuration
+k3s_etcd_backup_enabled: true
+k3s_backup_etcd_s3_endpoint: v0002654.entw.bund.drv:9000
+k3s_backup_etcd_s3_access_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          32323233306664626232326361386134386338623766356463656264393531363538393738636631
+          3063396264323434656165633330376661623632623037340a353730386562396436356532643133
+          34653232333335646464316162613134383038626230636264656436316430306139633635353063
+          3531633939373263640a663864656233653330376236613331663336303030313335363830343163
+          39393662396631363564343064313362376632636431653236383230333763626461
+k3s_backup_etcd_s3_secret_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          62343563336530396665633134333463336138306433356465633761306136643262383961623664
+          3731656132656365376134316164326661623232333965640a336664643638353034643065323962
+          35623363626630353436613336396433393236306261376664346537363264616131636437333766
+          3665653738626262330a313462633037663066616265326536376239366130343434656334303431
+          61323963326665663832333362396661656538333836303265346639303137663334356537313235
+          3361333062396137636563323565633962626563383938363163
+# Certificates
+root_ca: "{{playbook_dir}}/crts/ca2018.crt"
+root_ca_additional: "{{playbook_dir}}/crts/ca2019.crt"

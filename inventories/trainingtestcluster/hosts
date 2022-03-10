@@ -1,0 +1,11 @@
+[rancher-control-cluster-master]
+# NONE
+
+[rancher-control-cluster-worker]
+# NONE
+
+[kubernetes_master]
+v0003587.entw.bund.drv
+
+[kubernetes_worker]
+# NONE

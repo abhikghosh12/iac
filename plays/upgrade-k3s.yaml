@@ -1,0 +1,20 @@
+---
+
+#This playbook upgrades an existing cluster to a newer version of k3s. The version number is specified in the group_vars/all.yaml file
+- name: Prepare K3S Installation on all nodes
+  hosts: kubernetes_master:kubernetes_worker
+  roles:
+    - prepare_install_k3s
+  tags:
+    - k3s_setup_prepare_install
+    - k3s_setup_install_master
+    - k3s_setup_install_worker
+  become: true  
+
+- name: Upgrade K3S on all nodes
+  hosts: kubernetes_master:kubernetes_worker
+  roles:
+    - upgrade_k3s
+  tags:
+    - k3s_setup_upgrade_cluster
+  become: true

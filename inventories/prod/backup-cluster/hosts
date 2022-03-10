@@ -1,0 +1,10 @@
+[kubernetes_master]
+v0003828.prod.bund.drv
+v0003829.prod.bund.drv
+v0003840.prod.bund.drv
+
+[kubernetes_worker]
+v0003820.prod.bund.drv
+v0003821.prod.bund.drv
+v0003822.prod.bund.drv
+v0003844.prod.bund.drv # Jumper Node

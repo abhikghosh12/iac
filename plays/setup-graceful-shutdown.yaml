@@ -1,0 +1,8 @@
+---
+- name: Setup graceful shutdown
+  hosts: rancher-control-cluster-master:rancher-control-cluster-worker:kubernetes_master:kubernetes_worker
+  roles:
+    - setup-graceful-shutdown
+  tags:
+    - setup-graceful-shutdown
+  become: true 

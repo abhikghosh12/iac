@@ -1,0 +1,160 @@
+# https://github.com/IBM-Cloud/kube-samples/blob/master/kube-audit/kube-audit-policy.yaml
+# https://kubernetes.io/docs/tasks/debug-application-cluster/audit/
+# https://rancher.com/docs/rke/latest/en/config-options/audit-log/#example-configurations
+
+# Log all requests at the Metadata level.
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+# do not log requests to the following 
+# Don't log these read-only URLs.
+- level: None
+  nonResourceURLs:
+  - "/healthz*"
+  - "/logs"
+  - "/metrics"
+  - "/swagger*"
+  - "/version"
+  - "/readyz*"
+  - "/livez*"
+- level: None
+  userGroups: ["system:serviceaccounts:kube-system"]
+  # FLeet Agent
+- level: None
+  users: ["system:serviceaccount:cattle-fleet-system:fleet-agent"]
+  verbs: ["update", "get"]
+  namespaces: ["cattle-fleet-system"]
+  resources:
+  - group: ""
+# Don't log requests to a configmap called "controller-leader"
+- level: None
+  resources:
+  - group: ""
+    resources: ["configmaps"]
+    resourceNames: ["controller-leader"]
+- level: None
+  # Ingress controller reads `configmaps/ingress-uid` through the unsecured port.
+  users: ["system:unsecured"]
+  namespaces: ["kube-system"]
+  verbs: ["get"]
+  resources:
+    - group: "" # core
+      resources: ["configmaps"]
+  # K3S Specific
+  # system:admin
+- level: Metadata
+  users: ["system:admin"]
+  namespaces: ["kube-system"]
+  verbs: ["get"]
+  resources:
+    - group: "" # core
+      resources: ["secrets"]
+- level: None
+  users: ["system:admin"]
+  verbs: ["get", "watch", "list"]
+  resources:
+    - group: "" # core
+- level: None
+  users: ["system:admin"]
+  namespaces: ["kube-system"]
+  verbs: ["update"]
+  resources:
+    - group: "" # core
+      resources: ["configmaps"]
+      resourceNames: ["k3s"]
+# Don't log watch requests by the "system:kube-proxy" on endpoints or services
+- level: None
+  users: ["system:kube-proxy"]
+  verbs: ["watch"]
+  resources:
+  - group: "" # core API group
+    resources: ["endpoints", "services"]
+- level: None
+  userGroups: ["system:nodes"]
+  verbs: ["create"]
+  resources:
+    - group: "" # core
+      resources: ["secrets"]
+- level: None
+  userGroups: ["system:nodes"]
+  verbs: ["get", "patch", "watch"]
+  resources:
+    - group: "" # core
+      resources: ["nodes", "pods"]
+- level: None
+  userGroups: ["system:nodes"]
+  verbs: ["get"]
+  resources:
+    - group: "" # core
+      resources: ["secrets"]
+- level: None
+  users:
+    - system:kube-controller-manager
+    - system:kube-scheduler
+    - system:serviceaccount:kube-system:endpoint-controller
+  verbs: ["get", "update"]
+  namespaces: ["kube-system"]
+  resources:
+    - group: "" # core
+      resources: ["endpoints"]
+- level: None
+  users: ["system:apiserver"]
+  verbs: ["get"]
+  resources:
+    - group: "" # core
+      resources: ["namespaces"]
+# Don't log events requests.
+- level: None
+  resources:
+    - group: "" # core
+      resources: ["events"]
+    - group: "events.k8s.io"
+      resources: ["events"]
+
+# Secrets, ConfigMaps, and TokenReviews can contain sensitive & binary data,
+# so only log at the Metadata level.
+- level: Metadata
+  resources:
+    - group: ""  # core
+      resources: ["secrets", "configmaps"]
+    - group: authentication.k8s.io
+      resources: ["tokenreviews"]
+# Log pvc/pv requests to capture volume details
+- level: Request
+  verbs: ["create", "delete", "update", "patch"]
+  resources:
+    - group: ""  # core
+      resources: ["persistentvolumeclaims", "persistentvolumes"]
+# Log pod create requests to capture container images, etc.
+- level: Request
+  verbs: ["create", "update", "patch"]
+  resources:
+    - group: ""  # core
+      resources: ["pods", "replicacontrollers", "container"]
+    - group: "apps"
+      resources: ["daemonsets", "deployments", "replicasets", "statefulsets"]
+    - group: "batch"
+      resources: ["jobs", "cronjobs"]
+    - group: "extensions" # necessary for pre-1.12 clusters
+      resources: ["daemonsets", "deployments", "replicasets"]
+- level: Metadata
+  resources:
+    - group: ""
+      resources: ["pods/log", "pods/status"]
+
+# Log changes to Calico resources
+- level: RequestResponse
+  verbs: ["create", "update", "delete", "patch"]
+  resources:
+    - group: crd.projectcalico.org
+
+# Excludes the following apigroups from logs
+- level: None
+  resources:
+    - group: "apiregistration.k8s.io"
+    - group: "coordination.k8s.io"
+# A catch-all rule to log all other requests at the Metadata level.
+# Get responses can be large; skip them.
+- level: Metadata
+  verbs: ["create", "update", "delete", "patch"]
+

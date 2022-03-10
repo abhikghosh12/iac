@@ -1,0 +1,27 @@
+cluster_name: entw
+bootstrap_registry_url: v0002654.entw.bund.drv:5001
+#cluster_token: ymxUOmF1to8xOO1KzPKadf
+
+#Proxy config
+http_proxy_url:   http://lbwgw.prod.bund.drv:80
+https_proxy_url:  http://lbwgw.prod.bund.drv:80
+no_proxy_config:  localhost,.bund.drv
+
+#K3S
+k3s_installation_files_path: /var/lib/k3s_installation_files
+k3s_installation_path: /var/lib/k3s
+k3s_installation_binary_version: v1.21.5
+k3s_selinux_rpm_version: 0.4-1.el7
+primary_master_node_k3s_port: 6443
+primary_master_node: v0002501.entw.bund.drv
+
+#Rancher
+rancher_selinux_rpm_version: 0.2-1.el7
+rancher_api_key: "{{ lookup('file', '{{playbook_dir}}/rancher_tokens/entw_key') }}"
+rancher_api_secret: "{{ lookup('file', '{{playbook_dir}}/rancher_tokens/entw_secret') }}"
+rancher_url: rancher.entw.bund.drv
+# K3S Backup Configuration
+
+# Certificates
+root_ca: "{{playbook_dir}}/crts/ca2018.crt"
+root_ca_additional: "{{playbook_dir}}/crts/ca2019.crt"

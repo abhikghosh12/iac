@@ -1,0 +1,12 @@
+- name: Upgrade Rancher
+  hosts: rancher-control-cluster-master
+  roles:
+    - upgrade_rancher
+  tags:
+    - k3s_setup_upgrade_rancher
+
+## MB: 2022-01-20 - Removed, seems not necessary. If used, needed to extend $PATH
+#  become: true
+#  environment:
+ #   PATH: "{{ ansible_env.PATH }}:/usr/local/sbin:/usr/local/bin"
+ #   OTHER_ENV_VAR: its_new_value

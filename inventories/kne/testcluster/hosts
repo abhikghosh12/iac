@@ -1,0 +1,7 @@
+[rancher-control-cluster-master]
+v0002495.kne.bund.drv
+
+[kubernetes_master]
+
+[kubernetes_worker]
+# None

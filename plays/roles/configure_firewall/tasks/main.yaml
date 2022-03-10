@@ -1,0 +1,61 @@
+---
+# TODO: Review Port Settings for Rancher & K3S https://rancher.com/docs/rancher/v2.6/en/installation/resources/advanced/firewall/
+# TODO: Consider setting port settings differently for master & workers
+
+# Dieses Script setzt die Firewallregeln
+# Die Firewall ist in der DRV standardmässig auf accept-all eingerichtet, als Backfall , falls die Firewallregeln verändert werden, werden hier die Firewall Regeln installiert.
+
+# Enable Firewall
+- name: Making sure firewall is enabled
+  systemd:
+    service: firewalld
+    enabled: yes
+    state: started 
+
+# Set Port required Port Rules for K3S & Rancher
+- name: Install Firewalld Rule for Port 22
+  shell: "firewall-cmd --permanent --add-port=22/tcp"  
+
+- name: Install Firewalld Rule for Port 80
+  shell: "firewall-cmd --permanent --add-port=80/tcp"  
+
+- name: Install Firewalld Rule for Port 443
+  shell: "firewall-cmd --permanent --add-port=443/tcp"  
+
+- name: Install Firewalld Rule for Port 2376
+  shell: "firewall-cmd --permanent --add-port=2376/tcp"  
+
+- name: Install Firewalld Rule for Port 2380
+  shell: "firewall-cmd --permanent --add-port=2380/tcp"  
+
+- name: Install Firewalld Rule for Port 6443
+  shell: "firewall-cmd --permanent --add-port=6443/tcp"  
+
+- name: Install Firewalld Rule for Port 8472
+  shell: "firewall-cmd --permanent --add-port=8472/tcp"  
+
+- name: Install Firewalld Rule for Port 9099
+  shell: "firewall-cmd --permanent --add-port=9099/tcp"  
+
+- name: Install Firewalld Rule for Port 10250
+  shell: "firewall-cmd --permanent --add-port=10250/tcp"  
+
+- name: Install Firewalld Rule for Port 10254
+  shell: "firewall-cmd --permanent --add-port=10254/tcp"  
+
+- name: Install Firewalld Rule for Port 30000-32767
+  shell: "firewall-cmd --permanent --add-port=30000-32767/tcp"  
+
+- name: Install Firewalld Rule for Port 30000-32767
+  shell: "firewall-cmd --permanent --add-port=30000-32767/udp"
+
+# Reload Config
+- name: Reload firewalld config
+  shell: "firewall-cmd --reload"
+
+# Check Firewalld is running
+- name: Making sure firewall is enabled
+  systemd:
+    service: firewalld
+    enabled: yes
+    state: started

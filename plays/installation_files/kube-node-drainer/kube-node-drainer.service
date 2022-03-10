@@ -1,0 +1,13 @@
+[Unit]
+Description=Drain Node at Shutdown and uncordon at Startup via Rancher API
+After=network-online.target
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/sysconfig/kube-node-drainer
+ExecStart=/bin/sh -c "/usr/bin/curl --insecure -u \"${TokenName}:${TokenSecret}\" -X POST -H \'Accept: application/json\' -H \'Content-Type: application/json\' -d \'{\"deleteLocalData\":true, \"force\":true, \"gracePeriod\":-1, \"ignoreDaemonSets\":true, \"timeout\":120}\' \"https://${RancherUrl}/v3/nodes/${NodeID}?action=uncordon\" "
+ExecStop=/bin/sh -c "/usr/bin/curl  --insecure -u \"${TokenName}:${TokenSecret}\" -X POST -H \'Accept: application/json\' -H \'Content-Type: application/json\' -d \'{\"deleteLocalData\":true, \"force\":true, \"gracePeriod\":-1, \"ignoreDaemonSets\":true, \"timeout\":120}\' \"https://${RancherUrl}/v3/nodes/${NodeID}?action=drain\" "
+TimeoutStopSec=200
+# This service shall be considered active after start
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target

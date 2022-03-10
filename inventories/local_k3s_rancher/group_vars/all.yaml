@@ -1,0 +1,47 @@
+cluster_name: local-entw
+bootstrap_registry_url: v0002654.entw.bund.drv:5001
+cluster_token: xbOKRfqJTcqdgpHkBhiR
+
+#Proxy config
+http_proxy_url:   http://lbwgw.prod.bund.drv:80
+https_proxy_url:  http://lbwgw.prod.bund.drv:80
+no_proxy_config:  localhost,.bund.drv
+
+#K3S
+k3s_installation_files_path: /var/lib/k3s_installation_files
+k3s_installation_path: /var/lib/k3s
+k3s_installation_binary_version: v1.21.5
+k3s_selinux_rpm_version: 0.4-1.el7
+primary_master_node_k3s_port: 6443
+primary_master_node: v0002497.entw.bund.drv
+
+# K3S Backup Configuration
+k3s_etcd_backup_enabled: true
+k3s_backup_etcd_s3_endpoint: v0002654.entw.bund.drv:9000
+k3s_backup_etcd_s3_access_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          64666231373961623034613766643236666239363533613238616238363064616139373762643435
+          3937666635393332626636353563376437633235383331660a636635396363666565346366636630
+          62323862646534663466353832336336353236326262313662656133386666666638656232373731
+          3231666536353138350a316166363339316335616435316135313233383936336465646639666531
+          39643062663033633061636134383135333461653636313762313336393063393836
+k3s_backup_etcd_s3_secret_key: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          33316634663934646563366434353764383435633332393962383165353264343863333639393331
+          3532353635666163333564363465343261316336663437380a613839366439626664383330613432
+          32616338353433663635343134343335643231626163346661356162626161336461623761633963
+          3232313731636233390a393937306530366466323864383730616135643036363332663665393362
+          63663238646330613137343230373634333630373136616435356131303962626331616638653362
+          6435386162623966343430616162643965623735613039313138
+#Rancher
+rancher_installation_chart_version: 2.6.2
+rancher_installation_image_version: 2.6.2
+rancher_url: rancher.entw.bund.drv
+rancher_api_key: "{{ lookup('file', '{{playbook_dir}}/rancher_tokens/entw_key') }}"
+rancher_api_secret: "{{ lookup('file', '{{playbook_dir}}/rancher_tokens/entw_secret') }}"
+
+# Certificates
+root_ca: "{{playbook_dir}}/crts/ca2018.crt"
+root_ca_additional: "{{playbook_dir}}/crts/ca2019.crt"
+tls_rancher_ingress_cert: "{{playbook_dir}}/crts/rancher.entw.bund.drv.crt"
+tls_rancher_ingress_key: "{{playbook_dir}}/crts/rancher.entw.bund.drv.key"

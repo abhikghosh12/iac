@@ -1,0 +1,14 @@
+[rancher-control-cluster-master]
+# Using Local Cluster
+
+[kubernetes_master]
+v0002501.entw.bund.drv
+v0002502.entw.bund.drv
+v0002500.entw.bund.drv
+
+[kubernetes_worker]
+v0002618.entw.bund.drv
+v0002619.entw.bund.drv
+v0002620.entw.bund.drv
+v0002440.entw.bund.drv
+v0002441.entw.bund.drv

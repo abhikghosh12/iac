@@ -1,0 +1,54 @@
+---
+
+# Variable Preparation
+- name: Set Hardening K3S Arguments
+  set_fact:
+    service_args_master_rancher: "--protect-kernel-defaults=true --secrets-encryption=true --kube-apiserver-arg=\'audit-log-path=/var/lib/rancher/k3s/server/logs/audit-log\' --kube-apiserver-arg=\'audit-policy-file=/var/lib/rancher/k3s/server/audit-policy.yaml\'  --kube-apiserver-arg=\'audit-log-maxage=30\' --kube-apiserver-arg=\'audit-log-maxbackup=10\' --kube-apiserver-arg=\'audit-log-maxsize=100\' --kube-apiserver-arg=\'request-timeout=60s\' --kube-apiserver-arg=\'service-account-lookup=true\' --kube-apiserver-arg=\'enable-admission-plugins=NodeRestriction,NamespaceLifecycle,ServiceAccount\' --kube-controller-manager-arg=\'terminated-pod-gc-threshold=100\' --kubelet-arg=\'make-iptables-util-chains=true\'  --kubelet-arg=\'event-qps=0\' --flannel-backend=\'host-gw\'"
+    service_args_agent: "--protect-kernel-defaults=true --kubelet-arg=\'make-iptables-util-chains=true\' --kubelet-arg=\'event-qps=0\'"
+
+- name: Set Hardening K3S Args for K3S
+  set_fact:
+    service_args_master_k3s: "{{service_args_master_rancher}} --node-taint=\'k3s-controlplane=true:NoSchedule\'"
+
+
+# K3S Hosts
+
+## Execute install.sh Script
+- name: Execute the install.sh script for k3s (first master)
+  shell: "INSTALL_K3S_SKIP_DOWNLOAD=true INSTALL_K3S_EXEC='server {{service_args_master_k3s}}' {{k3s_installation_files_path}}/install.sh --cluster-init"
+  when: 
+    - myrole == "master"
+    - ansible_host == primary_master_node
+    - "'kubernetes_master' in group_names"
+
+- name: Execute the install.sh script for k3s (other master)
+  shell: "INSTALL_K3S_SKIP_DOWNLOAD=true K3S_URL=https://{{primary_master_node}}:{{primary_master_node_k3s_port}} K3S_TOKEN={{cluster_token}} INSTALL_K3S_EXEC='server --server https://{{primary_master_node}}:{{primary_master_node_k3s_port}}  {{service_args_master_k3s}}' {{k3s_installation_files_path}}/install.sh"
+  throttle: 1
+  when: 
+    - myrole == "master"
+    - ansible_host != primary_master_node
+    - "'kubernetes_master' in group_names"
+
+# Rancher K3S Masters
+
+## Execute install.sh Script
+- name: Execute the install.sh script for rancher k3s (first master)
+  shell: "INSTALL_K3S_SKIP_DOWNLOAD=true INSTALL_K3S_EXEC='server {{service_args_master_rancher}}' {{k3s_installation_files_path}}/install.sh --cluster-init"
+  when: 
+    - myrole == "master"
+    - ansible_host == primary_master_node
+    - "'kubernetes_master' not in group_names"
+
+- name: Execute the install.sh script for rancher k3s (other master)
+  shell: "INSTALL_K3S_SKIP_DOWNLOAD=true K3S_URL=https://{{primary_master_node}}:{{primary_master_node_k3s_port}} K3S_TOKEN={{cluster_token}} INSTALL_K3S_EXEC='server --server https://{{primary_master_node}}:{{primary_master_node_k3s_port}}  {{service_args_master_rancher}}' {{k3s_installation_files_path}}/install.sh"
+  throttle: 1
+  when: 
+    - myrole == "master"
+    - ansible_host != primary_master_node
+    - "'kubernetes_master' not in group_names"
+
+
+# K3S Agents
+- name: Execute the install.sh script (worker)
+  shell: "INSTALL_K3S_SKIP_DOWNLOAD=true K3S_URL=https://{{primary_master_node}}:{{primary_master_node_k3s_port}} K3S_TOKEN={{cluster_token}} INSTALL_K3S_EXEC='agent  {{service_args_agent}}' {{k3s_installation_files_path}}/install.sh"
+  when: myrole == "agent"

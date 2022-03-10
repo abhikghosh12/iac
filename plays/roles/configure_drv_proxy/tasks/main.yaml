@@ -1,0 +1,62 @@
+---
+- name: read contents of /etc/environment
+  shell: cat /etc/environment
+  register: env_content
+
+- name: echo http_proxy to /etc/environment
+  lineinfile:
+    path: /etc/environment
+    line: http_proxy={{http_proxy_url}}
+  when: env_content.stdout.find('http_proxy') == -1
+
+- name: echo https_proxy to /etc/environment
+  lineinfile:
+    path: /etc/environment
+    line: https_proxy={{https_proxy_url}}
+  when: env_content.stdout.find('https_proxy') == -1
+
+- name: echo no_proxy to /etc/environment
+  lineinfile:
+    path: /etc/environment
+    line: no_proxy={{no_proxy_config}}
+  when: env_content.stdout.find('no_proxy') == -1
+  
+# ======
+# In newer Ansible versions, we could use the following code to force a reconnect. This is required in order to respect the latest changes to the environments file
+# As we are not using the latest version, we have to use the workaround following below
+# ======
+#- name: reset ssh connection to allow user changes to affect 'current login user'
+#  meta: reset_connection  
+
+# Todo: Get rid of this workaround and use above method
+- name: Wait for the reboot and reconnect 
+  wait_for:
+    port: 22
+    host: '{{ (ansible_ssh_host|default(ansible_host))|default(inventory_hostname) }}'
+    search_regex: OpenSSH
+    delay: 10
+    timeout: 60
+  connection: local
+
+- name: Check the Uptime of the servers
+  shell: "uptime"
+  register: Uptime
+
+
+
+
+#- name: read contents of /etc/profile.d/proxy.sh
+#  shell: cat /etc/profile.d/proxy.sh
+#  register: proxysh_content
+
+#- name: echo http_proxy to /etc/profile.d/proxy.sh
+#  lineinfile:
+#    path: /etc/profile.d/proxy.sh
+#    line: export http_proxy=http://lbwgw.prod.bund.drv:80
+#  when: proxysh_content.stdout.find('http_proxy') != -1
+
+#- name: echo https_proxy to /etc/profile.d/proxy.sh
+#  lineinfile:
+#    path: /etc/profile.d/proxy.sh
+#    line: export https_proxy=http://lbwgw.prod.bund.drv:80
+#  when: proxysh_content.stdout.find('https_proxy') != -1'

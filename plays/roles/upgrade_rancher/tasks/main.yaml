@@ -1,0 +1,63 @@
+---
+
+## --- START OF LOCAL PREPARATION --- ##
+# create tmp helm directory (used for creating chart)
+- name: Create tmp helm directory (local)
+  local_action: file path="{{role_path}}/tmp/helm" state=directory
+
+- name: Create tmp kube directory (local)
+  local_action: file path="{{role_path}}/tmp/kube" state=directory
+
+- name: Copy kubeconfig to playbook dir
+  fetch:
+    src: "/etc/rancher/k3s/k3s.yaml"
+    dest: "{{role_path}}/tmp/kube/.kube"
+
+# TODO helm fetch rancher chart
+
+# Render the Rancher template for Rancher Installation
+- name: Template helm chart
+  local_action: "shell podman run --privileged --rm -v $(pwd):/apps -w /apps \
+    -v {{role_path}}/tmp/kube/.kube:/root/.kube -v ~/.helm:/root/.helm -v ~/.config/helm:/root/.config/helm \
+    -v ~/.cache/helm:/root/.cache/helm \
+    -v {{playbook_dir}}:{{playbook_dir}} \
+    -v {{role_path}}:{{role_path}} \
+    alpine/k8s:1.20.7 helm template rancher {{playbook_dir}}/installation_files/rancher/rancher-{{ rancher_installation_chart_version }}.tgz --output-dir {{ role_path }}/tmp/helm \
+  --no-hooks \
+  --namespace cattle-system \
+  --set hostname={{ rancher_url }} \
+  --set rancherImage={{ bootstrap_registry_url }}/rancher/rancher \
+  --set systemDefaultRegistry={{ bootstrap_registry_url }} \
+  --set privateCA=true \
+  --set ingress.tls.source=secret \
+  --set useBundledSystemChart=true \
+  --set rancherImageTag=v{{ rancher_installation_image_version }} \
+  --set additionalTrustedCAs=true \
+  --set busyboxImage={{ bootstrap_registry_url }}/rancher/busybox \
+  --set auditLog.level=1"
+
+## --- END OF LOCAL PREPARATION --- ##
+
+- name: Copy templated helm chart to target
+  copy:
+    src: "{{ role_path }}/tmp/helm/rancher"
+    dest: /tmp/helm
+
+- name: Get Ansible Path
+  debug:
+    var: ansible_env.PATH
+
+- name: Install rendered rancher helm chart
+  shell: "k3s kubectl -n cattle-system apply -R -f /tmp/helm/rancher"
+
+## -- START OF CLEANING UP -- #
+#- name: Remove tmp helm directory (local)
+#  local_action: file path="{{ role_path }}/helm" state=absent
+
+- name: Remove tmp rendered rancher chart helm directory (remote)
+  file:
+    path: "/tmp/helm"
+    state: absent
+    
+#TODO: Remove Key
+## -- END OF CLEANING UP -- #

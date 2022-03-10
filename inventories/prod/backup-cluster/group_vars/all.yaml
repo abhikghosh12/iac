@@ -1,0 +1,32 @@
+cluster_name: backup-kne
+bootstrap_registry_url: v0003830.kne.bund.drv:5001
+cluster_token: !vault  |
+          $ANSIBLE_VAULT;1.1;AES256
+          30633139353931613430333363323233633862323736376663633137313332373434663737366364
+          3065303938356534663334316134656461656661623665380a626133653032306533313862356439
+          32376438326631353562646232363264653534353165613630633963333231613162363265333230
+          6266373036336536340a656662646635613563653464646238636335333835626238336461626563
+          31356364353730316563316339393531343064653161656333666436616164636163
+
+#K3S
+k3s_installation_files_path: /var/lib/k3s_installation_files
+k3s_installation_path: /var/lib
+k3s_installation_binary_version: v1.21.7
+k3s_selinux_rpm_version: 0.5-1.el7
+primary_master_node_k3s_port: 6443
+primary_master_node: v0003828.prod.bund.drv
+rancher_selinux_rpm_version: 0.2-1.el7
+
+
+#Rancher
+rancher_selinux_rpm_version: 0.2-1.el7
+
+# K3S Backup Configuration
+k3s_etcd_backup_enabled: false
+k3s_backup_etcd_s3_endpoint: 
+k3s_backup_etcd_s3_access_key: 
+k3s_backup_etcd_s3_secret_key: 
+
+# Certificates
+root_ca: "{{playbook_dir}}/crts/ca2018.crt"
+root_ca_additional: "{{playbook_dir}}/crts/ca2019.crt"

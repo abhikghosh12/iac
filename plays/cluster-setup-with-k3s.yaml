@@ -1,0 +1,55 @@
+---
+# This playbook sets up a new cluster
+# (Working Cluster)
+# Used Host Roles: 
+# - kubernetes_master
+# - kubenetes_worker
+#
+# Tags: 
+# - k3s_setup_cleanup_nodes
+# 
+# - k3s_setup_install_master
+# - k3s_setup_install_worker
+
+- name: Clean up all nodes
+  hosts: kubernetes_master:kubernetes_worker
+  roles:
+    - remove_k3s_components
+  tags:
+    - k3s_setup_cleanup_nodes
+  #become: true
+
+- name: Prepare Firewall
+  hosts: kubernetes_master:kubernetes_worker
+  roles:
+    - configure_firewall 
+  tags:
+    - configure_firewall
+  become: true
+
+- name: Prepare K3S Installation on all nodes
+  hosts: kubernetes_master:kubernetes_worker
+  roles:
+    - prepare_install_k3s
+  tags:
+    - k3s_setup_prepare_install
+    - k3s_setup_install_master
+    - k3s_setup_install_worker
+  become: true  
+
+- name: Install K3S on master nodes
+  hosts: kubernetes_master
+  strategy: linear
+  roles:
+    - install_k3s
+  tags:
+    - k3s_setup_install_master
+  #become: true
+
+- name: Install K3S on worker nodes
+  hosts: kubernetes_worker
+  roles:
+    - install_k3s
+  tags:
+    - k3s_setup_install_worker
+  #become: true

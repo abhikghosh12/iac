@@ -1,0 +1,6 @@
+- name: Validate Backup Keys
+  hosts: rancher-control-cluster-master:kubernetes_master
+  roles:
+    - validate_vault
+  tags:
+    - validate_vault

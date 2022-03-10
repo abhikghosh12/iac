@@ -1,0 +1,13 @@
+[rancher-control-cluster-master]
+v0002497.entw.bund.drv
+
+[rancher-control-cluster-worker]
+v0002498.entw.bund.drv
+v0002499.entw.bund.drv
+
+
+[kubernetes_master]
+# NONE
+
+[kubernetes_worker]
+# NONE

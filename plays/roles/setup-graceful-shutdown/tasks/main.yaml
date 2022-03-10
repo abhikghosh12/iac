@@ -1,0 +1,36 @@
+- name: Find out cluster id and node id
+  uri:
+    validate_certs: false
+    timeout: 5
+    url: https://{{ rancher_url }}/v3/nodes?hostname={{ inventory_hostname }}
+    user: "{{ rancher_api_key }}"
+    password: "{{ rancher_api_secret }}"
+    method: GET
+    force_basic_auth: yes
+    body_format: json
+    headers:
+      Accept: application/json
+  register: node_data
+
+- name: Create environment file
+  copy:
+    dest: "/etc/sysconfig/kube-node-drainer"
+    content: |
+     TokenName={{ rancher_api_key }}
+     TokenSecret={{ rancher_api_secret }}
+     NodeID={{ node_data.json.data[0].id }}
+     RancherUrl={{ rancher_url }}
+
+- name: Copy service file
+  copy:
+    src: "{{playbook_dir}}/installation_files/kube-node-drainer/kube-node-drainer.service"
+    dest: /etc/systemd/system/kube-node-drainer.service
+
+- name: Reload Systemd Daemon
+  systemd: daemon_reload=yes
+
+- name: Enable service
+  systemd:
+    service: kube-node-drainer
+    enabled: yes
+    state: started

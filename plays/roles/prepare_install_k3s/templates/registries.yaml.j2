@@ -1,0 +1,19 @@
+mirrors:
+  docker.io:
+    endpoint:
+      - "https://{{bootstrap_registry_url}}"
+
+configs:
+  "{{bootstrap_registry_url}}":
+    tls:
+      cert_file: # path to the cert file used in the registry
+      key_file:  # path to the key file used in the registry
+      ca_file:   {{k3s_installation_files_path}}/cacert.crt # path to the ca file used in the registry
+    auth: # add basic auth for registry
+      username: {{bootstrap_registry_username}}
+      password: {{bootstrap_registry_password}}
+  "harbor.flex.entw.bund.drv":
+    tls:
+      cert_file: # path to the cert file used in the registry
+      key_file:  # path to the key file used in the registry
+      ca_file:   {{k3s_installation_files_path}}/cacert.crt # path to the ca file used in the registry      
